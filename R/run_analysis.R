@@ -4,9 +4,11 @@ library(tidyverse)
 
 
 # Source other scripts ----------------------------------------------------
-download <- new.env(); source("./R/download.R", local = download)
-process <- new.env(); source("./R/process.R", local = process)
-visualise <- new.env(); source("./R/visualise.R", local = visualise)
+# download <- new.env(); source("./R/download.R", local = download)
+# process <- new.env(); source("./R/process.R", local = process)
+# visualise <- new.env(); source("./R/visualise.R", local = visualise)
+
+upload <- new.env(); source("./R/upload.R", local = upload)
 
 
 # Main function to run analysis -------------------------------------------
@@ -18,100 +20,133 @@ visualise <- new.env(); source("./R/visualise.R", local = visualise)
 #'
 #' @export
 #'
+
 run_analysis <- function() {
-  # log action
-  logger$info("Running analysis...")
+  print("Found the run_analysis function!")
 
-  # read in configuration
-  config_path <- file.path("input", "config.yml")
-  config <- yaml::read_yaml(config_path)
+  hse_2019 <- upload$hse_2019_in
 
-  # get file date and time stamp
-  config$date_stamp <- format(Sys.time(), "%Y%m%d-%H%M")
+  # economic activity status by BMI
+  hse_2019 %>%
+    filter(age16g5 >= 2 & # working age
+             age16g5<12,
+           BMIOK == 1) %>% # 18+ with valid BMI
+    mutate(BMI_cat = case_when(BMI>18.5 & BMI<25 ~ 'healthy',
+                               BMI>30 ~ 'obese'),
+           Economic_Status = case_when(HRPactIv3 == 1 ~ 'healthy', # activity status
+                                       HRPactIv3 == 2 ~ 'healthy',
+                                       HRPactIv3 == 3 ~ 'healthy',
+                                       HRPactIv3 == 4 ~ 'healthy',
+                                       HRPactIv3 == 5 ~ 'healthy',
+                                       HRPactIv3 == 6 ~ 'long-term sick',
+                                       HRPactIv3 == 7 ~ 'healthy',
+                                       HRPactIv3 == 8 ~ 'healthy')) %>%
+    filter(!is.na(Economic_Status)) %>% # remove other activity
+    group_by(BMI_cat,Economic_Status) %>%
+    summarise(num = sum(wt_int)) %>%
+    unique() %>%
+    ungroup() %>%
+    group_by(BMI_cat) %>%
+    mutate(p = num / sum(num)) %>%
+    filter(Economic_Status == 'long-term sick')
 
-  # download summary file
-  attendance_data <-
-    download$download_nhsd_data(
-      config$source_url,
-      config$summary$regex,
-      file.path(
-        "input",
-        sprintf("%s_%s", config$date_stamp, config$summary$filename)
-      )
-    ) %>%
-    process$load_attendance_data()
-
-  visualise$save_plot(
-    visualise$plot_attendance_proportions(attendance_data),
-    file.path(
-      "output",
-      sprintf("%s_%s", config$date_stamp, "attendance_plot.svg")
-    )
-  )
-
-  # download summary file
-  nims_data <-
-    download$download_nhsd_data(
-      config$source_url,
-      config$nims$regex,
-      file.path(
-        "input",
-        sprintf("%s_%s", config$date_stamp, config$nims$filename)
-      )
-    ) %>%
-    process$load_nims_data()
-
-  # pick region of interest and only select full years
-  nims_monthly_eng <-
-    process$get_monthly_totals(
-      nims_data %>% filter(area_name == "England")
-    ) %>%
-    group_by(year) %>%
-    filter(n() == 12) %>%
-    ungroup()
-
-  visualise$save_plot(
-    visualise$plot_nims_monthly(nims_monthly_eng),
-    file.path(
-      "output",
-      sprintf("%s_%s", config$date_stamp, "nims_monthly_eng.svg")
-    )
-  )
-
-  # NIMS data uses old ICB codes so need to update to new 2023
-  # codes
-  nims_icb_data <- nims_data %>%
-    filter(
-      area_type == "ICB",
-      date == as.Date("2023-01-01")
-    ) %>%
-    mutate(
-      ons_code = case_when(
-        ons_code == "E54000053" ~ "E54000064",
-        ons_code == "E54000052" ~ "E54000063",
-        TRUE ~ ons_code
-      )
-    ) %>%
-    select(ons_code, total)
-
-
-  visualise$save_plot(
-    visualise$plot_nims_icb_map(nims_icb_data),
-    file.path(
-      "output",
-      sprintf("%s_%s", config$date_stamp, "nims_icb_map_20230101.svg")
-    )
-  )
-
-  # copy config to output
-  fs::file_copy(
-    file.path("input", "config.yml"),
-    file.path(
-      "output",
-      sprintf("%s_config.yml", config$date_stamp)
-    ),
-    overwrite = TRUE
-  )
-
-  logger$info("Finished")
+  print("Tested with old economic analysis.")
 }
+
+# run_analysis <- function() {
+#   # log action
+#   logger$info("Running analysis...")
+#
+#   # read in configuration
+#   config_path <- file.path("input", "config.yml")
+#   config <- yaml::read_yaml(config_path)
+#
+#   # get file date and time stamp
+#   config$date_stamp <- format(Sys.time(), "%Y%m%d-%H%M")
+#
+#   # download summary file
+#   attendance_data <-
+#     download$download_nhsd_data(
+#       config$source_url,
+#       config$summary$regex,
+#       file.path(
+#         "input",
+#         sprintf("%s_%s", config$date_stamp, config$summary$filename)
+#       )
+#     ) %>%
+#     process$load_attendance_data()
+#
+#   visualise$save_plot(
+#     visualise$plot_attendance_proportions(attendance_data),
+#     file.path(
+#       "output",
+#       sprintf("%s_%s", config$date_stamp, "attendance_plot.svg")
+#     )
+#   )
+#
+#   # download summary file
+#   nims_data <-
+#     download$download_nhsd_data(
+#       config$source_url,
+#       config$nims$regex,
+#       file.path(
+#         "input",
+#         sprintf("%s_%s", config$date_stamp, config$nims$filename)
+#       )
+#     ) %>%
+#     process$load_nims_data()
+#
+#   # pick region of interest and only select full years
+#   nims_monthly_eng <-
+#     process$get_monthly_totals(
+#       nims_data %>% filter(area_name == "England")
+#     ) %>%
+#     group_by(year) %>%
+#     filter(n() == 12) %>%
+#     ungroup()
+#
+#   visualise$save_plot(
+#     visualise$plot_nims_monthly(nims_monthly_eng),
+#     file.path(
+#       "output",
+#       sprintf("%s_%s", config$date_stamp, "nims_monthly_eng.svg")
+#     )
+#   )
+#
+#   # NIMS data uses old ICB codes so need to update to new 2023
+#   # codes
+#   nims_icb_data <- nims_data %>%
+#     filter(
+#       area_type == "ICB",
+#       date == as.Date("2023-01-01")
+#     ) %>%
+#     mutate(
+#       ons_code = case_when(
+#         ons_code == "E54000053" ~ "E54000064",
+#         ons_code == "E54000052" ~ "E54000063",
+#         TRUE ~ ons_code
+#       )
+#     ) %>%
+#     select(ons_code, total)
+#
+#
+#   visualise$save_plot(
+#     visualise$plot_nims_icb_map(nims_icb_data),
+#     file.path(
+#       "output",
+#       sprintf("%s_%s", config$date_stamp, "nims_icb_map_20230101.svg")
+#     )
+#   )
+#
+#   # copy config to output
+#   fs::file_copy(
+#     file.path("input", "config.yml"),
+#     file.path(
+#       "output",
+#       sprintf("%s_config.yml", config$date_stamp)
+#     ),
+#     overwrite = TRUE
+#   )
+#
+#   logger$info("Finished")
+# }
