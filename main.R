@@ -3,6 +3,7 @@
 # Source this file to run code
 
 # Load global packages ----------------------------------------------------
+library(tidyverse)
 
 # check librarian package management installed
 if (!requireNamespace("librarian")) install.packages("librarian", quiet = TRUE)
