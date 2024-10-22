@@ -30,98 +30,8 @@ run_analysis <- function() {
   # Load in data
   df <- upload$hse_2019_in_lab
 
-  # # BMI categories versus wemwbs score -------------------------------------------------------------------------------------------------------------------------------------------
-  # print("BMI vs WEMWBS score")
-  # #Clean out the NAs
-  # df_clean <- df[complete.cases(df$BMIvg5, df$wemwbs), ]
-  #
-  # # Modify the factor levels
-  # df_clean$BMIvg5 <- factor(df_clean$BMIvg5,
-  #                           levels = c("1", "2", "3", "4", "5"),
-  #                           labels = c("Underweight", "Normal", "Overweight", "Obese", "Morbidly Obese"))
-  #
-  # # Create a contingency table
-  # tbl <- table(df_clean$BMIvg5, df_clean$wemwbs)
-  #
-  # # Calculate Chi-Square test
-  # chi_square_result <- chisq.test(tbl)
-  # print(chi_square_result)
-  #
-  # # Calculate Cramér's V
-  # cramers_v <- assocstats(tbl)$cramer
-  # print(cramers_v)
-  #
-  # # Visualise relationship
-  # # Mosaic plot for visualizing the relationship
-  # mosaicplot(tbl, main = "Mosaic Plot of BMIvg5 and wemwbs",
-  #            xlab = "Grouped BMI (BMIvg5)",
-  #            ylab = "WEMWBS score (wemwbs)",
-  #            color = TRUE)
-  #
-  # # MH drugs taken and BMI --------------------------------------------------------------------------------------------------------------------------------------------------
-  # print("BMI vs MH drugs taken")
-  # #Clean out the NAs
-  # df_clean <- df[complete.cases(df$BMIvg5, df$MENHTAKg2), ]
-  # df_clean$BMIvg5 <- factor(df_clean$BMIvg5,
-  #                           levels = c("1", "2", "3", "4", "5"),
-  #                           labels = c("Underweight", "Normal", "Overweight", "Obese", "Morbidly Obese"))
-  # df_clean$MENHTAKg2 <- factor(df_clean$MENHTAKg2,
-  #                           levels = c("0", "1"),
-  #                           labels = c("0", "1+"))
-  # # Create a contingency table
-  # tbl <- table(df_clean$BMIvg5, df_clean$MENHTAKg2)
-  #
-  # # Calculate Chi-Square test
-  # chi_square_result <- chisq.test(tbl)
-  # print(chi_square_result)
-  #
-  # # Calculate Cramér's V
-  # cramers_v <- assocstats(tbl)$cramer
-  # print(cramers_v)
-  #
-  # # Visualise relationship
-  # # Mosaic plot for visualizing the relationship Whether they had taken any drugs prescribed for mental health over the last 7 days(MENHTAKg2)
-  # mosaicplot(tbl, main = "Mosaic Plot of BMIvg5 and MENHTAKg2",
-  #            xlab = "Grouped BMI (BMIvg5)",
-  #            ylab = "Mental Health Drugs Taken (MENHTAKg2)",
-  #            color = TRUE,
-  #            labeling = labeling_cells(text = round(prop_tbl, 2),  # Rounded proportions inside cells
-  #                                      gp_labels = gpar(fontsize = 12, col = "black"),
-  #                                      gp_text = gpar(fontsize = 10, col = "blue")))
-  #
-  # # BMI categories versus sex -------------------------------------------------------------------------------------------------------------------------------------------
-  # print("BMI vs sex")
-  # print(summary(df$Sex))
-  # #Clean out the NAs
-  # df_clean <- df[complete.cases(df$BMIvg5, df$Sex), ]
-  #
-  # # Modify the factor levels
-  # df_clean$BMIvg5 <- factor(df_clean$BMIvg5,
-  #                           levels = c("1", "2", "3", "4", "5"),
-  #                           labels = c("Underweight", "Normal", "Overweight", "Obese", "Morbidly Obese"))
-  # df_clean$Sex <- factor(df_clean$Sex,
-  #                          levels = c("1", "2"),
-  #                          labels = c("Female", "Male"))
-  #
-  # # Create a contingency table
-  # tbl <- table(df_clean$BMIvg5, df_clean$Sex)
-  #
-  # # Calculate Chi-Square test
-  # chi_square_result <- chisq.test(tbl)
-  # print(chi_square_result)
-  #
-  # # Calculate Cramér's V
-  # cramers_v <- assocstats(tbl)$cramer
-  # print(cramers_v)
-  #
-  # # Visualise relationship
-  # # Mosaic plot for visualizing the relationship
-  # mosaicplot(tbl, main = "Mosaic Plot of BMIvg5 and Sex",
-  #            xlab = "Grouped BMI (BMIvg5)",
-  #            ylab = "Sex",
-  #            color = TRUE)
-
   # Loop through factors for plots --------------------------------------------------------------------------------------
+  # BMI first
   # List of factors to iterate through
   factors <- c("ag16g10", "Sex", "ThCoAny", "origin2",
                "LifeSatG", "wemwbs", "IllAff7", "ILL12m", "MENHTAKg2",
@@ -133,14 +43,10 @@ run_analysis <- function() {
 
   # Loop through each factor and perform the analysis
   for (factor in factors) {
-    print(paste("Analyzing", factor, "vs BMI"))
+    print(paste("Analysing", factor, "vs BMI"))
 
     # Clean out NAs for both Sex and the current factor
     df_clean <- df[complete.cases(df$BMIvg5, df[[factor]]), ]
-
-    # # Modify factor levels for Sex
-    # df_clean$BMIvg5 <- factor(df_clean$BMIvg5, levels = c("1", "2", "3", "4", "5"),
-    #                        labels = c("Underweight", "Normal", "Overweight", "Obese", "Morbidly Obese"))
 
     # Create a contingency table
     tbl <- table(df_clean$BMIvg5, df_clean[[factor]])
@@ -165,7 +71,47 @@ run_analysis <- function() {
   print(results)
 
   # Optionally, save results to a CSV or document
-  write.csv(results, "chi_square_results.csv", row.names = FALSE)
+  write.csv(results, "BMI_chi_square_results.csv", row.names = FALSE)
+
+  # BMI first
+  # List of factors to iterate through
+  factors <- c("ag16g10", "Sex", "qimd19", "origin2")
+
+  # Initialize a data frame to store results
+  results <- data.frame(Factor = character(), Chi_Square_p_value = numeric(),
+                        Cramers_V = numeric(), stringsAsFactors = FALSE)
+
+  # Loop through each factor and perform the analysis
+  for (factor in factors) {
+    print(paste("Analysing", factor, "vs Life Satisfaction"))
+
+    # Clean out NAs for both Sex and the current factor
+    df_clean <- df[complete.cases(df[[factor]], df$LifeSatG), ]
+
+    # Create a contingency table
+    tbl <- table(df_clean[[factor]], df_clean$LifeSatG)
+
+    # Perform chi-square test
+    chi_square_result <- chisq.test(tbl)
+
+    # Calculate Cramér's V
+    cramers_v <- assocstats(tbl)$cramer
+
+    # Save the results
+    results <- rbind(results, data.frame(Factor = factor,
+                                         Chi_Square_p_value = chi_square_result$p.value,
+                                         Cramers_V = cramers_v))
+
+    # Visualize with a mosaic plot
+    mosaicplot(tbl, main = paste("Mosaic Plot of", factor, "and Life Satisfaction"),
+               xlab = factor, ylab = "Life Satisfaction", color = TRUE)
+  }
+
+  # Print or save the results
+  print(results)
+
+  # Optionally, save results to a CSV or document
+  write.csv(results, "LifeSatG_chi_square_results.csv", row.names = FALSE)
 
 }
 
