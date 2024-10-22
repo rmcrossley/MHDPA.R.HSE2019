@@ -16,7 +16,32 @@ hse_2019_in <- read_sav("C:/Users/Becky.Crossley/Department of Health and Social
 # Reduce to data we want --------------------------------------------
 # Select the specific columns
 hse_2019_in_reduced <- hse_2019_in %>%
-  select(Sex, ag16g10, HSEYR, BMIvg5, ThCoAny, SCSatis, origin2, LifeSatG, wemwbs, IllAff7, ILL12m, MENHTAKg2, AntiDepTakg2, SCOFF2, qimd19)
+  select(Sex, ag16g10, HSEYR, BMIvg5, ThCoAny, SCSatis, origin2, LifeSatG, wemwbs, IllAff7, ILL12m, MENHTAKg2, AntiDepTakg2, SCOFF2, qimd19, AntiDepM2)
 
 #print(head(hse_2019_in_reduced))
 #print(summary(hse_2019_in_reduced))
+
+hse_2019_in_lab <- hse_2019_in_reduced
+
+# Clean data to label correctly
+# Modify factor levels for BMI
+hse_2019_in_lab$BMIvg5 <- factor(hse_2019_in_lab$BMIvg5, levels = c("1", "2", "3", "4", "5"),
+                          labels = c("Underweight", "Normal", "Overweight", "Obese", "Morbidly Obese"))
+# Modify factor levels for Sex
+hse_2019_in_lab$Sex <- factor(hse_2019_in_lab$Sex, levels = c("1", "2"), labels = c("Female", "Male"))
+# Modify factor levels for Age groups
+hse_2019_in_lab$ag16g10 <- factor(hse_2019_in_lab$ag16g10, levels = c("1", "2", "3", "4", "5", "6", "7"), labels = c("16-24", "25-34", "35-44", "45-54", "55-64", "65-74", "75+"))
+# Modify factor levels for Therapy
+hse_2019_in_lab$ThCoAny <- factor(hse_2019_in_lab$ThCoAny, levels = c("0", "1"), labels = c("Not mentioned", "Mentioned"))
+# Modify factor levels for life satisfaction
+hse_2019_in_lab$LifeSatG <- factor(hse_2019_in_lab$LifeSatG, levels = c("1", "2", "3", "4"), labels = c("Low (0-4)", "Medium (5-6)", "High (7-8)", "Very high (9-10)"))
+# Modify factor levels for whether mental health drug was taken in last week
+hse_2019_in_lab$MENHTAKg2 <- factor(hse_2019_in_lab$MENHTAKg2, levels = c("0", "1"), labels = c("0", "1+"))
+# Modify factor levels for whether prescribed drug for depression was taken in last week
+hse_2019_in_lab$AntiDepTakg2 <- factor(hse_2019_in_lab$AntiDepTakg2, levels = c("0", "1"), labels = c("0", "1+"))
+# Modify factor levels for whether prescribed drug for depression
+hse_2019_in_lab$AntiDepM2 <- factor(hse_2019_in_lab$AntiDepM2, levels = c("0", "1"), labels = c("Not taking", "Taking"))
+# Modify factor levels for ED screener, SCOFF
+hse_2019_in_lab$SCOFF2 <- factor(hse_2019_in_lab$SCOFF2, levels = c("1", "2"), labels = c("Score 0-1", "Score 2+"))
+# Modify factor levels for depravity
+hse_2019_in_lab$qimd19 <- factor(hse_2019_in_lab$qimd19, levels = c("1", "5"), labels = c("Least Deprived", "Most Deprived"))

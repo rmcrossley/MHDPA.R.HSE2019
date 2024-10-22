@@ -28,7 +28,7 @@ run_analysis <- function() {
   logger$info("Running analysis...")
 
   # Load in data
-  df <- upload$hse_2019_in_reduced
+  df <- upload$hse_2019_in_lab
 
   # # BMI categories versus wemwbs score -------------------------------------------------------------------------------------------------------------------------------------------
   # print("BMI vs WEMWBS score")
@@ -123,7 +123,7 @@ run_analysis <- function() {
 
   # Loop through factors for plots --------------------------------------------------------------------------------------
   # List of factors to iterate through
-  factors <- c("ag16g10", "Sex", "ThCoAny", "SCSatis", "origin2",
+  factors <- c("ag16g10", "Sex", "ThCoAny", "origin2",
                "LifeSatG", "wemwbs", "IllAff7", "ILL12m", "MENHTAKg2",
                "AntiDepTakg2", "SCOFF2", "qimd19")
 
@@ -136,14 +136,14 @@ run_analysis <- function() {
     print(paste("Analyzing", factor, "vs BMI"))
 
     # Clean out NAs for both Sex and the current factor
-    df_clean <- df[complete.cases(df[[factor]], df$BMIvg5), ]
+    df_clean <- df[complete.cases(df$BMIvg5, df[[factor]]), ]
 
-    # Modify factor levels for Sex
-    df_clean$BMIvg5 <- factor(df_clean$BMIvg5, levels = c("1", "2", "3", "4", "5"),
-                           labels = c("Underweight", "Normal", "Overweight", "Obese", "Morbidly Obese"))
+    # # Modify factor levels for Sex
+    # df_clean$BMIvg5 <- factor(df_clean$BMIvg5, levels = c("1", "2", "3", "4", "5"),
+    #                        labels = c("Underweight", "Normal", "Overweight", "Obese", "Morbidly Obese"))
 
     # Create a contingency table
-    tbl <- table(df_clean[[factor]], df_clean$BMIvg5)
+    tbl <- table(df_clean$BMIvg5, df_clean[[factor]])
 
     # Perform chi-square test
     chi_square_result <- chisq.test(tbl)
@@ -158,7 +158,7 @@ run_analysis <- function() {
 
     # Visualize with a mosaic plot
     mosaicplot(tbl, main = paste("Mosaic Plot of", factor, "and BMI"),
-               xlab = factor, ylab = "BMI", color = TRUE)
+               ylab = factor, xlab = "BMI", color = TRUE)
   }
 
   # Print or save the results
