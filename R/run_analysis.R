@@ -125,7 +125,7 @@ run_analysis <- function() {
   # List of factors to iterate through
   factors <- c("ag16g10", "Sex", "ThCoAny", "origin2",
                "LifeSatG", "wemwbs", "IllAff7", "ILL12m", "MENHTAKg2",
-               "AntiDepTakg2", "SCOFF2", "qimd19")
+               "AntiDepTakg2", "SCOFF2", "qimd19", "AntiDepM2")
 
   # Initialize a data frame to store results
   results <- data.frame(Factor = character(), Chi_Square_p_value = numeric(),
