@@ -12,7 +12,7 @@ library(vcd)
 upload <- new.env(); source("./R/upload.R", local = upload)
 
 
-# Main function to run analysis -------------------------------------------
+# Main function to run analysis -------------------------------------------------------------------------------------------------------------------------------------------------
 
 #' Run analysis
 #'
@@ -24,15 +24,13 @@ upload <- new.env(); source("./R/upload.R", local = upload)
 
 run_analysis <- function() {
   print("Found the run_analysis function!")
+  #log action
+  logger$info("Running analysis...")
 
   # Load in data
   df <- upload$hse_2019_in_reduced
 
-  # BMI categories versus Depravity categories -------------------
-
-  #Debugging 21/10
-  # Check specifically for NA values
-  #print(summary(df$wemwbs))
+  # BMI categories versus wemwbs score -------------------------------------------------------------------------------------------------------------------------------------------
 
   #Clean out the NAs
   df_clean <- df[complete.cases(df$BMIvg5, df$wemwbs), ]
@@ -60,9 +58,9 @@ run_analysis <- function() {
              ylab = "WEMWBS score (wemwbs)",
              color = TRUE)
 
-  # MH drugs taken and BMI -----------------
-  #Clean out the NAs
+  # MH drugs taken and BMI --------------------------------------------------------------------------------------------------------------------------------------------------
 
+  #Clean out the NAs
   df_clean <- df[complete.cases(df$BMIvg5, df$MENHTAKg2), ]
   df_clean$BMIvg5 <- factor(df_clean$BMIvg5,
                             levels = c("1", "2", "3", "4", "5"),
@@ -81,9 +79,6 @@ run_analysis <- function() {
   cramers_v <- assocstats(tbl)$cramer
   print(cramers_v)
 
-
-  prop_tbl <- prop.table(tbl)
-
   # Visualise relationship
   # Mosaic plot for visualizing the relationship Whether they had taken any drugs prescribed for mental health over the last 7 days(MENHTAKg2)
   mosaicplot(tbl, main = "Mosaic Plot of BMIvg5 and MENHTAKg2",
@@ -94,34 +89,6 @@ run_analysis <- function() {
                                        gp_labels = gpar(fontsize = 12, col = "black"),
                                        gp_text = gpar(fontsize = 10, col = "blue")))
 
-  # Using old analysis as test -------------------------------------
-  #logger$info("[Old Economic Test]")
-  # economic activity status by BMI
-  # hse_2019 %>%
-  #   filter(age16g5 >= 2 & # working age
-  #            age16g5<12,
-  #          BMIOK == 1) %>% # 18+ with valid BMI
-  #   mutate(BMI_cat = case_when(BMI>18.5 & BMI<25 ~ 'healthy',
-  #                              BMI>30 ~ 'obese'),
-  #          Economic_Status = case_when(HRPactIv3 == 1 ~ 'healthy', # activity status
-  #                                      HRPactIv3 == 2 ~ 'healthy',
-  #                                      HRPactIv3 == 3 ~ 'healthy',
-  #                                      HRPactIv3 == 4 ~ 'healthy',
-  #                                      HRPactIv3 == 5 ~ 'healthy',
-  #                                      HRPactIv3 == 6 ~ 'long-term sick',
-  #                                      HRPactIv3 == 7 ~ 'healthy',
-  #                                      HRPactIv3 == 8 ~ 'healthy')) %>%
-  #   filter(!is.na(Economic_Status)) %>% # remove other activity
-  #   group_by(BMI_cat,Economic_Status) %>%
-  #   summarise(num = sum(wt_int)) %>%
-  #   unique() %>%
-  #   ungroup() %>%
-  #   group_by(BMI_cat) %>%
-  #   mutate(p = num / sum(num)) %>%
-  #   filter(Economic_Status == 'long-term sick')
-  #
-  # print("Tested with old economic analysis.")
-  # # --------------------------------------------------------
 }
 
 # run_analysis <- function() {
